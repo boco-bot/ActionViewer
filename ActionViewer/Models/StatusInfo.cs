@@ -1,5 +1,4 @@
-﻿using ActionViewer.Enums;
-using Dalamud.Game.ClientState.Objects.SubKinds;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 
 namespace ActionViewer.Models
 {
@@ -12,11 +11,10 @@ namespace ActionViewer.Models
     }
     public class StatusInfo
     {
-        public int essenceId { get; set; }
+        public Lumina.Excel.GeneratedSheets2.Action? leftLuminaStatusInfo { get; set; }
+        public Lumina.Excel.GeneratedSheets2.Action? rightLuminaStatusInfo { get; set; }
+		public int essenceId { get; set; }
         public int reraiserStatus { get; set; }
-        public int leftId { get; set; }
-        public int rightId { get; set; }
-        public int reminiscenceId { get; set; }
         public uint essenceIconID
         {
             get
@@ -37,12 +35,9 @@ namespace ActionViewer.Models
         {
             get
             {
-                if (rightId > 0)
+                if (rightLuminaStatusInfo != null)
                 {
-					if (reminiscenceId == 2348)
-						return 64656 + (uint)rightId;
-                    if (reminiscenceId == 1618)
-						return EurkeaIconDictionary.eurekaIcons[rightId];
+				    return rightLuminaStatusInfo.Icon;
 				}
                 return 33;
             }
@@ -51,12 +46,9 @@ namespace ActionViewer.Models
         {
             get
             {
-                if (leftId > 0)
+                if (leftLuminaStatusInfo != null)
                 {
-					if (reminiscenceId == 2348)
-						return 64656 + (uint)leftId;
-					if (reminiscenceId == 1618)
-						return EurkeaIconDictionary.eurekaIcons[leftId];
+                    return leftLuminaStatusInfo.Icon;
 				}
                 return 33;
             }

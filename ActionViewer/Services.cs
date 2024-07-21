@@ -22,5 +22,7 @@ namespace ActionViewer
 
         [PluginService]
         public static IChatGui Chat { get; private set; } = null!;
+        [PluginService]
+        public static IDataManager DataManager { get; private set; } = null;
     }
 }
