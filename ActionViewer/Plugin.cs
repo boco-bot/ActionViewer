@@ -7,6 +7,7 @@ using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using Lumina.Excel;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace ActionViewer
@@ -18,21 +19,23 @@ namespace ActionViewer
         private const string commandName = "/av";
         private const string configCommandName = "/avcfg";
 
-        [PluginService] public static ITargetManager TargetManager { get; private set; } = null!;
+		private static List<uint> territoryTypes = new List<uint>() { 920, 936, 937, 975, 795, 827, 1252 };
+		[PluginService] public static ITargetManager TargetManager { get; private set; } = null!;
 
         [PluginService] public static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
         [PluginService] public static ITextureProvider TextureProvider { get; private set; } = null!;
         [PluginService] public static IDataManager DataManager { get; private set; } = null;
 
-        public readonly WindowSystem WindowSystem = new("ActionViewer");
+		public readonly WindowSystem WindowSystem = new("ActionViewer");
         public readonly MainWindow MainWindow;
         public readonly ConfigWindow ConfigWindow;
         public Configuration Configuration { get; init; }
-        public IActionViewer ActionViewer { get; init; }
         public const string Authors = "boco-bot, ClassicRagu";
         public static readonly string Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "Unknown";
-		public readonly ExcelSheet<Lumina.Excel.Sheets.Action> ActionSheet;
+		public readonly ExcelSheet<Lumina.Excel.Sheets.MYCTemporaryItem> BozjaCache;
+		public readonly ExcelSheet<Lumina.Excel.Sheets.EurekaMagiaAction> EurekaAction;
 		public readonly ExcelSheet<Lumina.Excel.Sheets.Item> ItemSheet;
+        public readonly ExcelSheet<Lumina.Excel.Sheets.Status> StatusSheet;
 
 		public Plugin(IDalamudPluginInterface pluginInterface)
         {
@@ -41,7 +44,9 @@ namespace ActionViewer
             Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             Configuration.Initialize(Services.PluginInterface);
 
-            this.MainWindow = new MainWindow(this);
+			Services.ClientState.TerritoryChanged += TerritoryChangePoll;
+
+			this.MainWindow = new MainWindow(this);
             this.ConfigWindow = new ConfigWindow(this);
 
 			this.WindowSystem.AddWindow(this.MainWindow);
@@ -50,15 +55,17 @@ namespace ActionViewer
             PluginInterface.UiBuilder.Draw += this.DrawUI;
             PluginInterface.UiBuilder.OpenConfigUi += this.DrawConfigUI;
 
-            this.ActionSheet = DataManager.GetExcelSheet<Lumina.Excel.Sheets.Action>();
+            this.BozjaCache = DataManager.GetExcelSheet<Lumina.Excel.Sheets.MYCTemporaryItem>();
+			this.EurekaAction = DataManager.GetExcelSheet<Lumina.Excel.Sheets.EurekaMagiaAction>();
 			this.ItemSheet = DataManager.GetExcelSheet<Lumina.Excel.Sheets.Item>();
+            this.StatusSheet = DataManager.GetExcelSheet<Lumina.Excel.Sheets.Status>();
 
-			ActionViewer = new ActionViewer();
+			TerritoryChangePoll(Services.ClientState.TerritoryType);
 
-            // you might normally want to embed resources and load them from the manifest stream
-            //PluginUi = new PluginUI(Configuration, ActionViewer);
+			// you might normally want to embed resources and load them from the manifest stream
+			//PluginUi = new PluginUI(Configuration, ActionViewer);
 
-            Services.Commands.AddHandler(commandName, new CommandInfo(OnCommand)
+			Services.Commands.AddHandler(commandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "View a list of the Essence and Lost Actions of nearby players"
             });
@@ -71,7 +78,25 @@ namespace ActionViewer
             //Services.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
         }
 
-        public void Dispose()
+        private void TerritoryChangePoll(uint territoryId)
+        {
+            if (PlayerInRelevantTerritory())
+            {
+                this.MainWindow.Reset();
+            }
+        }
+
+		public bool PlayerInRelevantTerritory()
+        {
+            if(Configuration != null && !Configuration.UnrestrictZones){
+                return Plugin.territoryTypes.Contains(Services.ClientState.TerritoryType);
+            } else
+            {
+                return true;
+            }
+		}
+
+		public void Dispose()
         {
             WindowSystem.RemoveAllWindows();
             Services.Commands.RemoveHandler(commandName);

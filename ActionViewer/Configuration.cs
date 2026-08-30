@@ -13,6 +13,14 @@ namespace ActionViewer
 		public bool AnonymousMode = false;
         public bool TargetRangeLimit = true;
 
+        public bool UnrestrictZones = true;
+
+        public int[] Jobs = [0,0,1,0,2,0,2,2,2,1,1,0,2,1,0,1,0,1,0,0,0,0,0,0];
+        public bool[] JobOverflow = [false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, true, false, false, false, false, false, false];
+
+        public int[] SHJobs = [0,0,1,0,2,0,2,2,2,1,1,0,2,1,0,1,0,1,0,0,0,0,0,0];
+        public bool[] SHJobOverflow = [false, false, false, false, false, false, true, false, false, false, true, false, false, false, false, false, false, true, false, false, false, false, false, false];
+
 		// the below exist just to make saving less cumbersome
 
 		[NonSerialized]

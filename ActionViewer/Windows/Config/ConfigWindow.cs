@@ -1,7 +1,7 @@
 ﻿using ActionViewer.Tabs;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -31,6 +31,10 @@ public partial class ConfigWindow : Window
         if (ImGui.BeginTabBar("##ConfigTabBar"))
         {
             Settings();
+
+            FTBConfig();
+            
+            FTMConfig();
 
             About();
         }
